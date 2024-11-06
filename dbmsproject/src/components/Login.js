@@ -32,11 +32,12 @@ const Login = () => {
                 localStorage.setItem('authToken', response.data.token);
                 localStorage.setItem('username', response.data.username);  // Store username
                 localStorage.setItem('role', response.data.role);          // Store role
+                localStorage.setItem('userId',response.data.userId);
     
                 // Debugging logs
                 console.log("Stored username:", localStorage.getItem('username'));
                 console.log("Stored role:", localStorage.getItem('role'));
-    
+                console.log("Stored id:", localStorage.getItem('userId'));
                 // Redirect to dashboard after a brief delay
                 setTimeout(() => {
                      // Redirect based on role

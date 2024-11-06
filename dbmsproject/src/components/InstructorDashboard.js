@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-
 const InstructorDashboard = () => {
-    const [formData, setFormData] = useState({ course_name: '', description: '', instructor_id: 1 }); // assuming instructor_id is 1
+    const [formData, setFormData] = useState({ course_name: '', description: '', instructor_id: '' });
     const [courses, setCourses] = useState([]);
     const [message, setMessage] = useState('');
 
+    const userId = localStorage.getItem('userId'); // Get userId from localStorage
+    const role = localStorage.getItem('role'); // Get role from localStorage
+    const username = localStorage.getItem('username'); // Get username from localStorage
+
     useEffect(() => {
-        fetchCourses(); // Load courses on component mount
-    }, []);
+        if (userId) {
+            setFormData((prevData) => ({ ...prevData, instructor_id: userId }));
+            fetchCourses(userId);
+        }
+    }, [userId]); // This ensures that the form is updated and courses are fetched when userId changes.
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,19 +21,22 @@ const InstructorDashboard = () => {
 
     const addCourse = async () => {
         try {
+            const dataToSend = { ...formData, instructor_id: userId }; // Explicitly set instructor_id
+
             const response = await fetch('http://localhost:5000/add-course', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(dataToSend),
             });
+
             const result = await response.json();
             setMessage(result.message);
 
             if (response.ok) {
-                setFormData({ ...formData, course_name: '', description: '' });
-                fetchCourses(); // Refresh course list after adding a new course
+                setFormData({ course_name: '', description: '', instructor_id: userId });
+                fetchCourses(userId); // Refresh course list
             }
         } catch (error) {
             console.error('Error:', error);
@@ -35,9 +44,9 @@ const InstructorDashboard = () => {
         }
     };
 
-    const fetchCourses = async () => {
+    const fetchCourses = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:5000/instructor-courses/${formData.instructor_id}`);
+            const response = await fetch(`http://localhost:5000/instructor-courses/${userId}`);
             const result = await response.json();
             if (response.ok) {
                 setCourses(result); // Set courses data

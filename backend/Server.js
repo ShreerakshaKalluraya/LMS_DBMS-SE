@@ -83,6 +83,7 @@ app.post('/login', async (req, res) => {
                 message: 'Login successful',
                 username: user.username,  // Send username
                 role: user.role,          // Send role
+                userId: user.user_id,          // Send the actual user ID field here
             });
         });
 
@@ -91,6 +92,7 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
 
 // Add a new course
 app.post('/add-course', (req, res) => {
