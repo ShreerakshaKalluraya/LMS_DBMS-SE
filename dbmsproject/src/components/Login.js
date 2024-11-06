@@ -39,7 +39,14 @@ const Login = () => {
     
                 // Redirect to dashboard after a brief delay
                 setTimeout(() => {
-                    navigate('/dashboard');
+                     // Redirect based on role
+                if (response.data.role === 'admin') {
+                    navigate('/admin'); // Redirect to admin page
+                } else if (response.data.role === 'instructor') {
+                    navigate('/instructor'); // Redirect to instructor page
+                } else if (response.data.role === 'student') {
+                    navigate('/student'); // Redirect to student page
+                }
                 }, 1000);
             } else {
                 setMessage(response.data.message || 'Login failed');
