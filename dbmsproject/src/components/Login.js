@@ -23,14 +23,24 @@ const Login = () => {
         try {
             const response = await axios.post('http://localhost:5000/login', formData);
             setMessage(response.data.message);
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 1000); 
+    
             if (response.data.success) {
-                // Store the token in local storage or a cookie
+                // Check the response data
+                console.log('Response Data:', response.data);
+    
+                // Store the token, username, and role in localStorage
                 localStorage.setItem('authToken', response.data.token);
-                // Use the useNavigate hook to redirect
-                navigate('/dashboard');
+                localStorage.setItem('username', response.data.username);  // Store username
+                localStorage.setItem('role', response.data.role);          // Store role
+    
+                // Debugging logs
+                console.log("Stored username:", localStorage.getItem('username'));
+                console.log("Stored role:", localStorage.getItem('role'));
+    
+                // Redirect to dashboard after a brief delay
+                setTimeout(() => {
+                    navigate('/dashboard');
+                }, 1000);
             } else {
                 setMessage(response.data.message || 'Login failed');
             }
@@ -38,14 +48,28 @@ const Login = () => {
             setMessage('Error occurred during login');
         }
     };
+    
+
     return (
         <div>
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>
                 <label>Email:</label>
-                <input type="email" name="email" onChange={handleChange} required />
+                <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                />
                 <label>Password:</label>
-                <input type="password" name="password" onChange={handleChange} required />
+                <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                />
                 
                 <button type="submit">Login</button>
             </form>
