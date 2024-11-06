@@ -92,4 +92,31 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Add a new course
+app.post('/add-course', (req, res) => {
+    const { course_name, description, instructor_id } = req.body;
+    
+    const sql = 'INSERT INTO courses (course_name, description, instructor_id) VALUES (?, ?, ?)';
+    db.query(sql, [course_name, description, instructor_id], (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to add course' });
+        }
+        res.status(200).json({ message: 'Course added successfully' });
+    });
+});
+
+// Get courses by instructor ID
+app.get('/instructor-courses/:instructor_id', (req, res) => {
+    const instructor_id = req.params.instructor_id;
+
+    const sql = 'SELECT * FROM courses WHERE instructor_id = ?';
+    db.query(sql, [instructor_id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to fetch courses' });
+        }
+        res.status(200).json(results);
+    });
+});
+
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
