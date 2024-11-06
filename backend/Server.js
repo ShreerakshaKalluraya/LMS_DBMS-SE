@@ -10,7 +10,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const PORT = 5000;
-const SECRET_KEY = '567';
+const SECRET_KEY = 'your-secret-key';
 
 // Connect to SQL database
 const db = mysql.createConnection({
@@ -27,24 +27,33 @@ db.connect(err => {
 
 // Register Route
 app.post('/', async (req, res) => {
-    const { username, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const { username, email, password, role } = req.body;
+    const saltRounds = 10;
 
-    const query = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
-    db.query(query, [username, email, hashedPassword], (err, results) => {
-        if (err) {
-            res.status(500).json({ success: false, message: 'Registration failed' });
-        } else {
-            res.status(201).json({ success: true, message: 'Registration successful' });
-        }
-    });
+    try {
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Insert user into database
+        const query = 'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)';
+        db.query(query, [username, email, hashedPassword, role], (error, results) => {
+            if (error) {
+                res.status(500).json({ message: 'Registration failed', success: false });
+                return;
+            }
+            res.status(200).json({ message: 'Registration successful', success: true });
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error occurred during registration', success: false });
+    }
 });
+
 
 // Login Route
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
 
-    const query = `SELECT * FROM users WHERE email = ? password= ?`;
+    const query = `SELECT * FROM users WHERE email = ?`;
     db.query(query, [email], async (err, results) => {
         if (err || results.length === 0) {
             res.status(401).json({ success: false, message: 'Login failed' });

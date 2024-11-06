@@ -8,6 +8,7 @@ const Register = () => {
         username: '',
         email: '',
         password: '',
+        role:'',
     });
     const [message, setMessage] = useState('');
 
@@ -22,11 +23,12 @@ const Register = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post('http://localhost:5000/register', formData);
+            const response = await axios.post('http://localhost:5000/', formData);
+            
             setMessage(response.data.message);
             setTimeout(() => {
                 navigate('/login');
-            }, 1000); 
+            }, 5000);
             setMessage(response.data.message);
             if (response.data.success) {
                 navigate('/login');
@@ -46,7 +48,15 @@ const Register = () => {
                 <input type="email" name="email" onChange={handleChange} required />
                 <label>Password:</label>
                 <input type="password" name="password" onChange={handleChange} required />
-                <button type="submit">Register</button>
+                <label>
+    ROLE:
+    <select name="role" value={formData.role} onChange={handleChange}>
+        <option value="Student">Student</option>
+        <option value="Instructor">Instructor</option>
+        <option value="Admin">Admin</option>
+    </select>
+</label>
+<button type="submit">Register</button>
             </form>
             <p>{message}</p>
             <p>

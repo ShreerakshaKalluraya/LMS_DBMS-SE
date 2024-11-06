@@ -46,6 +46,7 @@ const Login = () => {
                 <input type="email" name="email" onChange={handleChange} required />
                 <label>Password:</label>
                 <input type="password" name="password" onChange={handleChange} required />
+                
                 <button type="submit">Login</button>
             </form>
             <p>{message}</p>
