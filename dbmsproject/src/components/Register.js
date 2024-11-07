@@ -27,12 +27,13 @@ const Register = () => {
             
             setMessage(response.data.message);
             setTimeout(() => {
-                navigate('/login');
-            }, 5000);
-            setMessage(response.data.message);
+                setMessage(response.data.message);
             if (response.data.success) {
                 navigate('/login');
             }
+               
+            }, 3000);
+            
         } catch (error) {
             setMessage('Registration failed');
         }

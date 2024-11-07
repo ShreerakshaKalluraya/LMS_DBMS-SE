@@ -87,7 +87,7 @@ const InstructorDashboard = () => {
 
     return (
         <div>
-            <h2>Instructor Dashboard</h2>
+            <h2>Welcome, {username}!</h2>
             <div className="form-container">
                 <h3>Add New Course</h3>
                 <form onSubmit={(e) => { e.preventDefault(); addCourse(); }}>
