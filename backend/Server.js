@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -120,5 +122,31 @@ app.get('/instructor-courses/:instructor_id', (req, res) => {
     });
 });
 
+// Setup multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, 'uploads'));
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    },
+});
+const upload = multer({ storage });
 
+// Serve static files from the "uploads" directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// API endpoint for uploading material
+app.post('/upload-material/:courseId', upload.single('material'), (req, res) => {
+    const courseId = req.params.courseId;
+    const materialUrl = `/uploads/${req.file.filename}`;
+
+    const sql = 'UPDATE courses SET materials = ? WHERE course_id = ?';
+    db.query(sql, [materialUrl, courseId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error uploading material', error: err });
+        }
+        res.json({ message: 'Material uploaded successfully', materialUrl });
+    });
+});
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
