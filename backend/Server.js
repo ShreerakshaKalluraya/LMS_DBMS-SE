@@ -149,4 +149,66 @@ app.post('/upload-material/:courseId', upload.single('material'), (req, res) => 
         res.json({ message: 'Material uploaded successfully', materialUrl });
     });
 });
+// Endpoint to enroll a user in a course
+app.post('/enroll', (req, res) => {
+    const { user_id, course_id, course_name } = req.body;
+    console.log('Received enrollment data:', req.body); // Log the received data
+
+    if (!user_id || !course_id || !course_name) {
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const sql = 'INSERT INTO enrollments (user_id, course_id, course_name) VALUES (?, ?, ?)';
+    db.query(sql, [user_id, course_id, course_name], (err, result) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ message: 'Failed to enroll in course', error: err });
+        }
+        res.status(200).json({ message: 'Enrollment successful', courseName: course_name });
+    });
+});
+
+
+// Updated API endpoint to fetch available and enrolled courses
+app.get('/api/courses/:userId', (req, res) => {
+    const userId = req.params.userId;
+    console.log(`Fetching available courses for user ID: ${userId}`);
+
+    // Query to get available courses
+    const availableCoursesQuery = `
+        SELECT c.course_id, c.course_name, u.username AS instructor_name
+        FROM courses c
+        JOIN users u ON c.instructor_id = u.user_id
+        WHERE c.course_id NOT IN (
+            SELECT course_id FROM enrollments WHERE user_id = ?
+        )
+    `;
+
+    // Query to get enrolled courses
+    const enrolledCoursesQuery = `
+        SELECT c.course_id, c.course_name, u.username AS instructor_name
+        FROM enrollments e
+        JOIN courses c ON e.course_id = c.course_id
+        JOIN users u ON c.instructor_id = u.user_id
+        WHERE e.user_id = ?
+    `;
+
+    // Execute both queries in parallel
+    db.query(availableCoursesQuery, [userId], (err, availableResults) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+
+        db.query(enrolledCoursesQuery, [userId], (err, enrolledResults) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            res.json({
+                availableCourses: availableResults,
+                enrolledCourses: enrolledResults,
+            });
+        });
+    });
+});
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
