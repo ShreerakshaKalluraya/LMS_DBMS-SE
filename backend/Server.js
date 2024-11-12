@@ -139,7 +139,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // API endpoint for uploading material
 app.post('/upload-material/:courseId', upload.single('material'), (req, res) => {
     const courseId = req.params.courseId;
-    const materialUrl = `/uploads/${req.file.filename}`;
+    const materialUrl = `uploads/${req.file.filename}`;
 
     const sql = 'UPDATE courses SET materials = ? WHERE course_id = ?';
     db.query(sql, [materialUrl, courseId], (err, result) => {
