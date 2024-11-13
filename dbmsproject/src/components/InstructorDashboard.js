@@ -130,7 +130,7 @@ const InstructorDashboard = () => {
                                     {course.materials ? (
                                         <p>
                                             Material Uploaded: 
-                                            <a href={`http://localhost:5000${course.materials}`} target="_blank" rel="noopener noreferrer" style={styles.link}>
+                                            <a href={`http://localhost:5000/${course.materials}`} target="_blank" rel="noopener noreferrer" style={styles.link}>
                                                 View
                                             </a>
                                         </p>
