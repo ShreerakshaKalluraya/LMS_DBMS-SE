@@ -84,6 +84,44 @@ const InstructorDashboard = () => {
             setMessage('An error occurred while fetching courses');
         }
     };
+    const uploadQuiz = async (courseId) => {
+        const formData = new FormData();
+        formData.append('quiz', file);  // Append the selected file
+    
+        try {
+            const response = await fetch(`http://localhost:5000/upload-quiz/${courseId}`, {
+                method: 'POST',
+                body: formData,
+            });
+            const result = await response.json();
+            setMessage(result.message);  // Show success or error message
+            if (response.ok) {
+                fetchCourses(userId);  // Refresh the course list after uploading the material
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            setMessage('Quiz uploaded successfully');
+        }
+    };
+    const uploadAssess = async (courseId) => {
+        const formData = new FormData();
+        formData.append('Assessment', file);  // Append the selected file
+    
+        try {
+            const response = await fetch(`http://localhost:5000/upload-assess/${courseId}`, {
+                method: 'POST',
+                body: formData,
+            });
+            const result = await response.json();
+            setMessage(result.message);  // Show success or error message
+            if (response.ok) {
+                fetchCourses(userId);  // Refresh the course list after uploading the material
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            setMessage('Assessment uploaded successfully');
+        }
+    };
     return (
         <div style={styles.container}>
             <h2 style={styles.header}>Welcome, {username}!</h2>
@@ -148,7 +186,72 @@ const InstructorDashboard = () => {
                     <p>No courses available</p>
                 )}
             </div>
+            <div style={styles.coursesContainer}>
+                {courses.length > 0 ? (
+                    <ul style={styles.courseList}>
+                        {courses.map((course) => (
+                            <li key={course.course_id} style={styles.courseItem}>
+                                <h4 style={styles.courseName}>{course.course_name}</h4>
+                                <p style={styles.courseDescription}>{course.description}</p>
+
+                                <div style={styles.uploadSection}>
+                                    <h3>Quiz Upload</h3>
+                                    {/* Display uploaded material if exists */}
+                                    {course.quiz ? (
+                                        <p>
+                                            Quiz Uploaded: 
+                                            <a href={`http://localhost:5000${course.quiz}`} target="_blank" rel="noopener noreferrer" style={styles.link}>
+                                                View
+                                            </a>
+                                        </p>
+                                    ) : (
+                                        <div>
+                                            <input type="file" onChange={handleFileChange} style={styles.fileInput} />
+                                            <button onClick={() => uploadQuiz(course.course_id)} style={styles.button}>Upload Quiz</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No courses available</p>
+                )}
+            </div>
+            <div style={styles.coursesContainer}>
+                {courses.length > 0 ? (
+                    <ul style={styles.courseList}>
+                        {courses.map((course) => (
+                            <li key={course.course_id} style={styles.courseItem}>
+                                <h4 style={styles.courseName}>{course.course_name}</h4>
+                                <p style={styles.courseDescription}>{course.description}</p>
+
+                                <div style={styles.uploadSection}>
+                                <h3>Assessment Upload</h3>
+                                    {/* Display uploaded material if exists */}
+                                    {course.assess ? (
+                                        <p>
+                                            Material Uploaded: 
+                                            <a href={`http://localhost:5000${course.assess}`} target="_blank" rel="noopener noreferrer" style={styles.link}>
+                                                View
+                                            </a>
+                                        </p>
+                                    ) : (
+                                        <div>
+                                            <input type="file" onChange={handleFileChange} style={styles.fileInput} />
+                                            <button onClick={() => uploadAssess(course.course_id)} style={styles.button}>Upload Assessment</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No courses available</p>
+                )}
+            </div>
         </div>
+    
     );
 };
 

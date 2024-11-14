@@ -149,6 +149,30 @@ app.post('/upload-material/:courseId', upload.single('material'), (req, res) => 
         res.json({ message: 'Material uploaded successfully', materialUrl });
     });
 });
+app.post('/upload-quiz/:courseId', upload.single('quiz'), (req, res) => {
+    const courseId = req.params.courseId;
+    const materialUrl = `/uploads/${req.file.filename}`;
+
+    const sql = 'UPDATE courses SET materials = ? WHERE course_id = ?';
+    db.query(sql, [quizUrl, courseId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Quiz uploaded successfully', error: err });
+        }
+        res.json({ message: 'Quiz uploaded successfully', materialUrl });
+    });
+});
+app.post('/upload-assess/:courseId', upload.single('assess'), (req, res) => {
+    const courseId = req.params.courseId;
+    const materialUrl = `/uploads/${req.file.filename}`;
+
+    const sql = 'UPDATE courses SET materials = ? WHERE course_id = ?';
+    db.query(sql, [materialUrl, courseId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Assessment uploaded successfully', error: err });
+        }
+        res.json({ message: 'Assessment uploaded successfully', materialUrl });
+    });
+});
 // Endpoint to enroll a user in a course
 app.post('/enroll', (req, res) => {
     const { user_id, course_id, course_name } = req.body;
