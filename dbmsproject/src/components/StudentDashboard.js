@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 
 const StudentDashboard = () => {
     const username = localStorage.getItem('username');
-    const role = localStorage.getItem('role');
     const userId = localStorage.getItem('userId');
 
     const [courses, setCourses] = useState([]);
@@ -53,8 +52,22 @@ const StudentDashboard = () => {
             })
             .then((data) => {
                 alert(`Enrolled in course ${data.courseName} successfully!`);
-                setEnrolledCourses([...enrolledCourses, { course_id: courseId, course_name: data.courseName }]);
-                setCourses(courses.filter(course => course.course_id !== courseId));
+                // Fetch the updated list of enrolled courses
+                fetch(`http://localhost:5000/api/courses/${userId}`)
+                    .then((response) => {
+                        if (!response.ok) {
+                            return response.text().then(text => { throw new Error(text); });
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        setEnrolledCourses(data.enrolledCourses);
+                        setCourses(data.availableCourses);
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching updated courses:', error);
+                        alert('Failed to fetch updated courses. Please check the console for more details.');
+                    });
             })
             .catch((error) => {
                 console.error('Error enrolling in course:', error);
@@ -115,7 +128,20 @@ const StudentDashboard = () => {
                         borderRadius: '5px',
                         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                     }}>
-                        {course.course_name}
+                        <div>{course.course_name}</div>
+                        <div>
+                            {/* Display uploaded material if exists */}
+                            {course.materials ? (
+                                <p>
+                                    Material Uploaded:
+                                    <a href={`http://localhost:5000/${course.materials}`} target="_blank" rel="noopener noreferrer">
+                                        View
+                                    </a>
+                                </p>
+                            ) : (
+                                <p>No materials uploaded yet.</p>
+                            )}
+                        </div>
                     </li>
                 )) : <p>You haven't enrolled in any courses yet.</p>}
             </ul>

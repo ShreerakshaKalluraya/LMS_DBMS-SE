@@ -122,6 +122,18 @@ app.get('/instructor-courses/:instructor_id', (req, res) => {
     });
 });
 
+app.get('/student-courses/:user_id', (req, res) => {
+    const user_id = req.params.user_id;
+
+    const sql = 'SELECT * FROM enrollments WHERE user_id = ?';
+    db.query(sql, [user_id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Failed to fetch courses' });
+        }
+        res.status(200).json(results);
+    });
+});
+
 // Setup multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -184,9 +196,9 @@ app.get('/api/courses/:userId', (req, res) => {
         )
     `;
 
-    // Query to get enrolled courses
+    // Query to get enrolled courses with materials
     const enrolledCoursesQuery = `
-        SELECT c.course_id, c.course_name, u.username AS instructor_name
+        SELECT c.course_id, c.course_name, u.username AS instructor_name, c.materials
         FROM enrollments e
         JOIN courses c ON e.course_id = c.course_id
         JOIN users u ON c.instructor_id = u.user_id
@@ -196,11 +208,13 @@ app.get('/api/courses/:userId', (req, res) => {
     // Execute both queries in parallel
     db.query(availableCoursesQuery, [userId], (err, availableResults) => {
         if (err) {
+            console.error('Error fetching available courses:', err);
             return res.status(500).json({ error: err.message });
         }
 
         db.query(enrolledCoursesQuery, [userId], (err, enrolledResults) => {
             if (err) {
+                console.error('Error fetching enrolled courses:', err);
                 return res.status(500).json({ error: err.message });
             }
 
@@ -211,4 +225,79 @@ app.get('/api/courses/:userId', (req, res) => {
         });
     });
 });
+
+
+
+
+
+// Get all users
+app.get('/api/users', (req, res) => {
+    db.query('SELECT * FROM users', (err, results) => {
+        if (err) {
+            console.error('Error fetching users:', err);
+            return res.status(500).json({ message: 'Internal Server Error' });
+        }
+        res.json(results);
+    });
+});
+
+// Update user
+app.put('/api/users/:id', (req, res) => {
+    const { username, email, password, role } = req.body;
+    const userId = req.params.id;
+    db.query(
+        'UPDATE users SET username = ?, email = ?, password = ?, role = ? WHERE user_id = ?',
+        [username, email, password, role, userId],
+        (err, results) => {
+            if (err) {
+                console.error('Error updating user:', err);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
+            res.json({ message: 'User updated successfully' });
+        }
+    );
+});
+
+// Delete user
+app.delete('/api/users/:id', (req, res) => {
+    const userId = req.params.id;
+    db.query('DELETE FROM users WHERE user_id = ?', [userId], (err, results) => {
+        if (err) {
+            console.error('Error deleting user:', err);
+            return res.status(500).json({ message: 'Internal Server Error' });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ message: 'User deleted successfully' });
+    });
+});
+
+//const bcrypt = require('bcrypt');
+// Add a new quiz
+app.post('/api/quizzes', (req, res) => {
+    const { course_id, question, option_a, option_b, option_c, option_d, correct_option } = req.body;
+    const query = 'INSERT INTO quizzes (course_id, question, option_a, option_b, option_c, option_d, correct_option) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    db.query(query, [course_id, question, option_a, option_b, option_c, option_d, correct_option], (err, results) => {
+        if (err) {
+            console.error('Error adding quiz:', err);
+            return res.status(500).json({ message: 'Failed to add quiz', success: false });
+        }
+        res.json({ message: 'Quiz added successfully', success: true });
+    });
+});
+
+// Fetch quizzes for a course
+app.get('/api/quizzes/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const query = 'SELECT * FROM quizzes WHERE course_id = ?';
+    db.query(query, [courseId], (err, results) => {
+        if (err) {
+            console.error('Error fetching quizzes:', err);
+            return res.status(500).json({ message: 'Failed to fetch quizzes', success: false });
+        }
+        res.json(results);
+    });
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
