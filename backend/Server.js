@@ -300,4 +300,17 @@ app.get('/api/quizzes/:courseId', (req, res) => {
     });
 });
 
+// Fetch quizzes for a course
+app.get('/api/quizzes/:courseId', (req, res) => {
+    const courseId = req.params.courseId;
+    const query = 'SELECT * FROM quizzes WHERE course_id = ?';
+    db.query(query, [courseId], (err, results) => {
+        if (err) {
+            console.error('Error fetching quizzes:', err);
+            return res.status(500).json({ message: 'Failed to fetch quizzes', success: false });
+        }
+        res.json(results);
+    });
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

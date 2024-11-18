@@ -6,6 +6,7 @@ const StudentDashboard = () => {
 
     const [courses, setCourses] = useState([]);
     const [enrolledCourses, setEnrolledCourses] = useState([]);
+    const [quizzes, setQuizzes] = useState({});
     const [message, setMessage] = useState('');
 
     useEffect(() => {
@@ -25,6 +26,26 @@ const StudentDashboard = () => {
             .then((data) => {
                 setCourses(data.availableCourses);
                 setEnrolledCourses(data.enrolledCourses);
+                // Fetch quizzes for each enrolled course
+                data.enrolledCourses.forEach(course => {
+                    fetch(`http://localhost:5000/api/quizzes/${course.course_id}`)
+                        .then((response) => {
+                            if (!response.ok) {
+                                return response.text().then(text => { throw new Error(text); });
+                            }
+                            return response.json();
+                        })
+                        .then((quizData) => {
+                            setQuizzes(prevQuizzes => ({
+                                ...prevQuizzes,
+                                [course.course_id]: quizData
+                            }));
+                        })
+                        .catch((error) => {
+                            console.error('Error fetching quizzes:', error);
+                            alert('Failed to fetch quizzes. Please check the console for more details.');
+                        });
+                });
             })
             .catch((error) => {
                 console.error('Error fetching courses:', error);
@@ -73,6 +94,19 @@ const StudentDashboard = () => {
                 console.error('Error enrolling in course:', error);
                 alert('Error enrolling in course. Please try again.');
             });
+    };
+
+    const handleQuizSubmit = (courseId, answers) => {
+        const quizData = quizzes[courseId];
+        let score = 0;
+
+        quizData.forEach((quiz, index) => {
+            if (quiz.correct_option === answers[index]) {
+                score += 1;
+            }
+        });
+
+        alert(`You scored ${score} out of ${quizData.length}`);
     };
 
     return (
@@ -142,6 +176,49 @@ const StudentDashboard = () => {
                                 <p>No materials uploaded yet.</p>
                             )}
                         </div>
+
+                        {/* Display quizzes if available */}
+                        {quizzes[course.course_id] && (
+                            <div>
+                                <h4 style={{ marginTop: '10px', color: '#555' }}>Quizzes</h4>
+                                <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const formData = new FormData(e.target);
+                                    const answers = quizzes[course.course_id].map((_, index) => formData.get(`quiz-${index}`));
+                                    handleQuizSubmit(course.course_id, answers);
+                                }}>
+                                    {quizzes[course.course_id].map((quiz, index) => (
+                                        <div key={quiz.quiz_id} style={{ marginBottom: '10px' }}>
+                                            <p>{quiz.question}</p>
+                                            <label>
+                                                <input type="radio" name={`quiz-${index}`} value="a" />
+                                                {quiz.option_a}
+                                            </label>
+                                            <label>
+                                                <input type="radio" name={`quiz-${index}`} value="b" />
+                                                {quiz.option_b}
+                                            </label>
+                                            <label>
+                                                <input type="radio" name={`quiz-${index}`} value="c" />
+                                                {quiz.option_c}
+                                            </label>
+                                            <label>
+                                                <input type="radio" name={`quiz-${index}`} value="d" />
+                                                {quiz.option_d}
+                                            </label>
+                                        </div>
+                                    ))}
+                                    <button type="submit" style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#4CAF50',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                    }}>Submit Quiz</button>
+                                </form>
+                            </div>
+                        )}
                     </li>
                 )) : <p>You haven't enrolled in any courses yet.</p>}
             </ul>
