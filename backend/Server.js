@@ -18,8 +18,8 @@ const SECRET_KEY = 'your-secret-key';
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'Pranavi@9',
-    database: 'LMS1'
+    password: 'Raksha@2004',
+    database: 'lms'
 });
 
 db.connect(err => {
@@ -288,15 +288,25 @@ app.put('/api/users/:id', (req, res) => {
 // Delete user
 app.delete('/api/users/:id', (req, res) => {
     const userId = req.params.id;
-    db.query('DELETE FROM users WHERE user_id = ?', [userId], (err, results) => {
+
+    // Delete related records in the enrollments table
+    db.query('DELETE FROM enrollments WHERE user_id = ?', [userId], (err, results) => {
         if (err) {
-            console.error('Error deleting user:', err);
+            console.error('Error deleting related enrollments:', err);
             return res.status(500).json({ message: 'Internal Server Error' });
         }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json({ message: 'User deleted successfully' });
+
+        // Now delete the user
+        db.query('DELETE FROM users WHERE user_id = ?', [userId], (err, results) => {
+            if (err) {
+                console.error('Error deleting user:', err);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+            res.json({ message: 'User deleted successfully' });
+        });
     });
 });
 
