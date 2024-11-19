@@ -8,7 +8,7 @@ const Register = () => {
         username: '',
         email: '',
         password: '',
-        role:'',
+        role: '',
     });
     const [message, setMessage] = useState('');
 
@@ -25,17 +25,21 @@ const Register = () => {
         try {
             const response = await axios.post('http://localhost:5000/', formData);
             
+            // Set the message from the response
             setMessage(response.data.message);
-            setTimeout(() => {
-                setMessage(response.data.message);
             if (response.data.success) {
-                navigate('/login');
+                // Navigate to login after a short delay
+                setTimeout(() => {
+                    navigate('/login');
+                }, 3000);
             }
-               
-            }, 3000);
-            
         } catch (error) {
-            setMessage('Registration failed');
+            // Check if the error response exists and set the message accordingly
+            if (error.response && error.response.data) {
+                setMessage(error.response.data.message); // Show the error message from the server
+            } else {
+                setMessage('Registration failed. Please try again.'); // Generic error message
+            }
         }
     };
 
@@ -77,7 +81,7 @@ const Register = () => {
                         onChange={handleChange}
                         style={styles.select}
                     >
-                        <option value="None">Select Role</option>
+                        <option value="">Select Role</option>
                         <option value="Student">Student</option>
                         <option value="Instructor">Instructor</option>
                         <option value="Admin">Admin</option>
@@ -136,8 +140,7 @@ const styles = {
         border: '1px solid #ccc',
         fontSize: '1rem',
     },
-    select: {
-        padding: '0.5rem',
+    select: {padding: '0.5rem',
         marginBottom: '1rem',
         borderRadius: '4px',
         border: '1px solid #ccc',
@@ -152,9 +155,6 @@ const styles = {
         fontSize: '1rem',
         cursor: 'pointer',
         transition: 'background 0.3s',
-    },
-    buttonHover: {
-        background: 'linear-gradient(to right, #5526e6, #804dcd)',
     },
     message: {
         color: '#d9534f',

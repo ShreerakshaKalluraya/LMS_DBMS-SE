@@ -101,7 +101,6 @@ const InstructorDashboard = () => {
         try {
             const dataToSend = { ...quizFormData, course_id };
 
-            console.log('Adding quiz with data:', dataToSend); // Log the quiz data
             const response = await fetch('http://localhost:5000/api/quizzes', {
                 method: 'POST',
                 headers: {
@@ -133,7 +132,7 @@ const InstructorDashboard = () => {
     const fetchQuizzes = async (courseId) => {
         try {
             const response = await fetch(`http://localhost:5000/api/quizzes/${courseId}`);
-            const result = await response.json();
+            const result = await response .json();
             if (response.ok) {
                 setQuizzes(result);
             } else {
@@ -142,6 +141,28 @@ const InstructorDashboard = () => {
         } catch (error) {
             console.error('Error:', error);
             setMessage('An error occurred while fetching quizzes');
+        }
+    };
+
+    const deleteCourse = async (courseId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/deleteCourse`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ courseId }),
+            });
+
+            const result = await response.json();
+            setMessage(result.message);
+
+            if (response.ok) {
+                fetchCourses(userId); // Refresh course list after deletion
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            setMessage('An error occurred while deleting the course');
         }
     };
 
@@ -187,7 +208,6 @@ const InstructorDashboard = () => {
                                 <p style={styles.courseDescription}>{course.description}</p>
 
                                 <div style={styles.uploadSection}>
-                                    {/* Display uploaded material if exists */}
                                     {course.materials ? (
                                         <p>
                                             Material Uploaded:
@@ -291,6 +311,8 @@ const InstructorDashboard = () => {
                                         </li>
                                     ))}
                                 </ul>
+
+                                <button onClick={() => deleteCourse(course.course_id)} style={styles.button}>Delete Course</button>
                             </li>
                         ))}
                     </ul>

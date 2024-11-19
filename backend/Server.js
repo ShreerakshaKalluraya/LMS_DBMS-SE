@@ -18,8 +18,8 @@ const SECRET_KEY = 'your-secret-key';
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'Raksha@2004',
-    database: 'lms'
+    password: 'Pranavi@9',
+    database: 'LMS1'
 });
 
 db.connect(err => {
@@ -27,6 +27,7 @@ db.connect(err => {
     console.log('Database connected!');
 });
 
+// Register Route
 // Register Route
 app.post('/', async (req, res) => {
     const { username, email, password, role } = req.body;
@@ -40,6 +41,10 @@ app.post('/', async (req, res) => {
         const query = 'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)';
         db.query(query, [username, email, hashedPassword, role], (error, results) => {
             if (error) {
+                // Check if the error is due to the trigger
+                if (error.code === 'ER_SIGNAL_EXCEPTION') {
+                    return res.status(400).json({ message: error.sqlMessage, success: false });
+                }
                 res.status(500).json({ message: 'Registration failed', success: false });
                 return;
             }
@@ -227,7 +232,29 @@ app.get('/api/courses/:userId', (req, res) => {
 });
 
 
+app.post('/api/deleteCourse', (req, res) => {
+    const { courseId } = req.body;
 
+    // Validate input
+    if (!courseId) {
+        return res.status(400).json({ error: 'Course ID is required' });
+    }
+
+    // Call the stored procedure
+    db.query('CALL DeleteCourse(?)', [courseId], (error, results) => {
+        if (error) {
+            console.error('Error executing the procedure:', error);
+            return res.status(500).json({ error: 'An error occurred while deleting the course' });
+        }
+
+        // Check if the course was deleted
+        if (results.affectedRows > 0) {
+            return res.status(200).json({ message: 'Course deleted successfully' });
+        } else {
+            return res.status(404).json({ error: 'Course not found' });
+        }
+    });
+});
 
 
 // Get all users
